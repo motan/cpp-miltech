@@ -13,9 +13,33 @@
 
 ## Якщо вже клонували репо раніше
 
-Якщо репо клоновано до нових оновлень - дочекатися Slack-анонсу від лектора
-і замінити вказані файли вручну. Курс-репо створене як GitHub Template, тому
-звичайний `git pull` з upstream не працює надійно для студентських копій.
+Якщо репо клоновано до нових оновлень - дочекатися Slack-анонсу від лектора.
+Курс-репо створене як GitHub Template, тому звичайний `git pull` з upstream
+не працює надійно для студентських копій.
+
+Для підтягування snapshot-а курс-репо без затирання ДЗ 4:
+
+```bash
+tmp_dir=$(mktemp -d)
+
+git clone --depth 1 \
+  git@github.com:robot-dreams-code/C-PLUS-PLUS-FOR-MILITARY-TECHNOLOGY.git \
+  "$tmp_dir/course"
+
+(
+  cd "$tmp_dir/course"
+  tar --exclude='./.git' --exclude='./homework_04' -cf - .
+) | tar -xf -
+
+rm -rf "$tmp_dir"
+
+git status
+git add .
+git commit -m "chore: sync course repository updates"
+```
+
+`git status` перед комітом потрібен як перевірка, що `homework_04/` не
+затерто, а оновлення tooling/devcontainer/CMake/demo/homework_05 підтягнуто.
 
 Якщо клонована саме власна копія репозиторію, локальні зміни з неї
 підтягуються як звичайно:
@@ -38,9 +62,9 @@ git pull
 Всередині контейнера (VS Code terminal):
 
 ```bash
-cmake -S . -B build -G Ninja
-cmake --build build
-./build/homework_04/ugv_odometry homework_04/data/straight.txt
+cmake --preset debug
+cmake --build --preset debug
+./build/debug/homework_04/ugv_odometry homework_04/data/straight.txt
 ```
 
 Перші дві команди мають завершитись без помилки. Остання команда запускає
