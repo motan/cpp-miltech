@@ -50,7 +50,8 @@ long parse_long(const char *text)
 
     if (end == text)
     {
-        std::abort();
+        std::cerr << "error: invalid numeric value: " << text << '\n';
+        std::exit(1);
     }
 
     return value;
@@ -68,7 +69,8 @@ double parse_double(const char *text)
 
     if (end == text)
     {
-        std::abort();
+        std::cerr << "error: invalid numeric value: " << text << '\n';
+        std::exit(1);
     }
 
     return value;
