@@ -12,17 +12,21 @@
 const int EXPECTED_FIELD_COUNT = 7;
 const int MAX_LINE_LENGTH = 256;
 
-int split_line(char line[], char* fields[], int max_fields) {
+int split_line(char line[], char *fields[], int max_fields)
+{
     int count = 0;
-    char* cursor = line;
+    char *cursor = line;
 
-    while (*cursor != '\0' && count < max_fields) {
-        while (*cursor == ' ' || *cursor == '\t' || *cursor == '\n' || *cursor == '\r') {
+    while (*cursor != '\0' && count < max_fields)
+    {
+        while (*cursor == ' ' || *cursor == '\t' || *cursor == '\n' || *cursor == '\r')
+        {
             *cursor = '\0';
             ++cursor;
         }
 
-        if (*cursor == '\0') {
+        if (*cursor == '\0')
+        {
             break;
         }
 
@@ -30,7 +34,8 @@ int split_line(char line[], char* fields[], int max_fields) {
         ++count;
 
         while (*cursor != '\0' && *cursor != ' ' && *cursor != '\t' && *cursor != '\n' &&
-               *cursor != '\r') {
+               *cursor != '\r')
+        {
             ++cursor;
         }
     }
@@ -38,36 +43,46 @@ int split_line(char line[], char* fields[], int max_fields) {
     return count;
 }
 
-long parse_long(const char* text) {
-    char* end = nullptr;
+long parse_long(const char *text)
+{
+    char *end = nullptr;
     const long value = std::strtol(text, &end, 10);
 
-    if (end == text) {
+    if (end == text)
+    {
         std::abort();
     }
 
     return value;
 }
 
-int parse_int(const char* text) {
+int parse_int(const char *text)
+{
     return static_cast<int>(parse_long(text));
 }
 
-double parse_double(const char* text) {
-    char* end = nullptr;
+double parse_double(const char *text)
+{
+    char *end = nullptr;
     const double value = std::strtod(text, &end);
 
-    if (end == text) {
+    if (end == text)
+    {
         std::abort();
     }
 
     return value;
 }
 
-Frame parse_frame(char line[]) {
-    char* fields[EXPECTED_FIELD_COUNT] = {};
+Frame parse_frame(char line[])
+{
+    char *fields[EXPECTED_FIELD_COUNT] = {};
     const int field_count = split_line(line, fields, EXPECTED_FIELD_COUNT);
-    (void)field_count;
+    if (field_count != EXPECTED_FIELD_COUNT)
+    {
+        std::cerr << "error: invalid frame: expected 7 fields, got " << field_count << '\n';
+        std::exit(1);
+    }
 
     Frame frame{};
     frame.timestamp_ms = parse_long(fields[0]);
@@ -80,15 +95,18 @@ Frame parse_frame(char line[]) {
     return frame;
 }
 
-double compute_frame_rate_hz(const Frame frames[], int frame_count) {
+double compute_frame_rate_hz(const Frame frames[], int frame_count)
+{
     const long elapsed_ms = frames[frame_count - 1].timestamp_ms - frames[0].timestamp_ms;
 
     return static_cast<double>((frame_count - 1) * 1000 / elapsed_ms);
 }
 
-int read_frames(const char* path, Frame frames[], int max_frames) {
+int read_frames(const char *path, Frame frames[], int max_frames)
+{
     std::ifstream input{path};
-    if (!input) {
+    if (!input)
+    {
         std::cerr << "error: failed to open input file: " << path << '\n';
         return 0;
     }
@@ -96,12 +114,15 @@ int read_frames(const char* path, Frame frames[], int max_frames) {
     int frame_count = 0;
     char line[MAX_LINE_LENGTH];
 
-    while (input.getline(line, MAX_LINE_LENGTH)) {
-        if (line[0] == '\0') {
+    while (input.getline(line, MAX_LINE_LENGTH))
+    {
+        if (line[0] == '\0')
+        {
             continue;
         }
 
-        if (frame_count < max_frames) {
+        if (frame_count < max_frames)
+        {
             frames[frame_count] = parse_frame(line);
             ++frame_count;
         }
@@ -110,7 +131,8 @@ int read_frames(const char* path, Frame frames[], int max_frames) {
     return frame_count;
 }
 
-Summary summarize(const Frame frames[], int frame_count) {
+Summary summarize(const Frame frames[], int frame_count)
+{
     Summary summary{};
     summary.frames_total = frame_count;
     summary.frames_valid = frame_count;
@@ -120,18 +142,22 @@ Summary summarize(const Frame frames[], int frame_count) {
 
     double temperature_sum = 0.0;
 
-    for (int i = 0; i < frame_count; ++i) {
-        if (frames[i].voltage_v < summary.voltage_min) {
+    for (int i = 0; i < frame_count; ++i)
+    {
+        if (frames[i].voltage_v < summary.voltage_min)
+        {
             summary.voltage_min = frames[i].voltage_v;
         }
 
-        if (frames[i].voltage_v > summary.voltage_max) {
+        if (frames[i].voltage_v > summary.voltage_max)
+        {
             summary.voltage_max = frames[i].voltage_v;
         }
 
         temperature_sum += frames[i].temperature_c;
 
-        if (frames[i].voltage_v < 22.0) {
+        if (frames[i].voltage_v < 22.0)
+        {
             ++summary.low_voltage_frames;
         }
     }
@@ -142,7 +168,8 @@ Summary summarize(const Frame frames[], int frame_count) {
     return summary;
 }
 
-void print_summary(const Summary& summary) {
+void print_summary(const Summary &summary)
+{
     std::cout << "frames_total " << summary.frames_total << '\n';
     std::cout << "frames_valid " << summary.frames_valid << '\n';
     std::cout << "voltage_min " << summary.voltage_min << '\n';
